@@ -1,0 +1,53 @@
+---
+
+- name: adding the OS specific varibles (for default service name/config path)
+  include_vars: "{{ ansible_os_family }}.yml"
+
+
+- name: checking repl
+  shell: grep -q server-id "{{ mysql_conf_file }}"
+  register: mysql_repl_status
+  ignore_errors: true
+
+
+- name: checking repl setup status
+  fail: msg="MySQL replication was setup already"
+  when: mysql_repl_status.rc == 0
+
+
+- name: get hostname
+  shell: hostname
+  register: hostname
+
+
+- name: get server-id
+  shell: IP=$(ifconfig | grep 'inet addr' | cut -d':' -f2 | awk '{print $1}' | grep -v '127.0.0.1'); mysql -BN -e "select inet_aton('$IP')"
+  register: server_id
+
+
+- name: settings some facts
+  set_fact:
+    mysql_server_id: "{{server_id.stdout}}"
+    mysql_hostname: "{{hostname.stdout}}"
+    mysql_tmp_file: /tmp/mysql_repl.config.tmp
+    mysql_pswd_file: "{{mysql_pswd_folder}}{{mysql_repl_user}}"
+
+
+- name: creating databases if required
+  mysql_db: name={{ item.name }} state=present
+  with_items: mysql_repl_db
+
+
+- include: create_repl_user.yml
+
+
+
+- name: templating config
+  template: src=my.cnf.j2 dest={{ mysql_tmp_file }}
+
+
+- name: assembling my.cnf
+  sudo: true
+  shell: sed "/\[mysqld\]/r {{ mysql_tmp_file }}" -i {{ mysql_conf_file }}
+  notify: restarting mysql
+

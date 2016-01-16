@@ -1,0 +1,22 @@
+---
+
+mysql_port: 3306
+
+# simple|full
+mysql_repl_type: simple
+
+mysql_repl_db: 
+    - name: foo
+    - name: bar
+
+
+mysql_repl_user: repl
+mysql_repl_pswd: ""
+mysql_repl_priv: "REPLICATION SLAVE"
+
+
+mysql_repl_role: default
+
+mysql_conf_file: "{{mysql_conf_dir}}my.cnf"
+mysql_pswd_folder: "$HOME/.mysql/pswd/"
+

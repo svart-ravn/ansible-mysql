@@ -1,0 +1,28 @@
+- name: prepare folder to store passwords
+  shell: mkdir -p "{{mysql_pswd_folder}}"
+
+
+- name: generating pswd
+  shell: openssl rand -base64 15 | tr -s '=+/' 'X'
+  register: mysql_new_pswd
+  when: mysql_repl_pswd|default("") == ""
+
+
+- name: vars
+  set_fact:
+     mysql_repl_pswd: "{{mysql_new_pswd.stdout}}"
+  when: mysql_repl_pswd|default("") == ""
+
+
+- name: creating repl user with generated password 
+  mysql_user: name={{ mysql_repl_user }} 
+              host=% state=present 
+              priv=*.*:"{{ mysql_repl_priv }}"
+              password={{ mysql_repl_pswd }}
+
+
+- debug: msg="{{mysql_pswd_folder}}"
+- debug: msg="{{mysql_pswd_file}}"
+
+- name: saving pswd
+  shell: echo {{ mysql_repl_pswd }} > {{mysql_pswd_file}}
