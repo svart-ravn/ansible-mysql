@@ -1,3 +1,3 @@
-- name: restarting mysql service
+- name: restarting mysql
   shell: sudo service {{ mysql_service }} restart
   ignore_errors: true
