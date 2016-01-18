@@ -18,14 +18,11 @@ expire_logs_days      = 1
 log-bin               = mysql-bin
 binlog-format         = ROW
 
-
-
-# full/basic
-
 {% for db in mysql_repl_db %}
+{% if db.name != "" %}
 binlog-do-db = {{ db.name }}
 replicate-do-db = {{ db.name }}
+{% endif %}
 {% endfor %}
-
 
 #### /replication

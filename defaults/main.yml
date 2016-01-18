@@ -7,7 +7,9 @@ mysql_repl_type: simple
 
 mysql_repl_db: 
     - name: foo
-    - name: bar
+
+mysql_repl_ignore_db: 
+    - name: ""
 
 
 mysql_repl_user: repl

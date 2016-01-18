@@ -1,0 +1,45 @@
+
+### replication
+server-id        = {{ mysql_server_id }}
+report-host      = {{ mysql_hostname}}
+
+relay-log        = mysqld-relay-bin
+# read-only        = 1
+log_slave_updates   = 1
+
+
+# # replication crush recovery
+# version dependent
+# relay_log_info_repository = TABLE
+# relay_log_recovery = ON
+# sync_binlog=1
+
+expire_logs_days      = 1
+log-bin               = mysql-bin
+binlog-format         = ROW
+
+
+binlog-ignore-db = mysql
+binlog-ignore-db = information_schema
+binlog-ignore-db = performance_schema
+binlog-ignore-db = test
+binlog-ignore-db = tmp
+binlog-ignore-db = temp
+binlog-ignore-db = sys
+
+replicate-ignore-db = mysql
+replicate-ignore-db = information_schema
+replicate-ignore-db = performance_schema
+replicate-ignore-db = test
+replicate-ignore-db = tmp
+replicate-ignore-db = temp
+replicate-ignore-db = sys
+
+{% for db in mysql_repl_ignore_db %}
+{% if db.name != "" %}
+binlog-ignore-db = {{ db.name }}
+replicate-ignore-db = {{ db.name }}
+{% endif %}
+{% endfor %}
+#### /replication
+

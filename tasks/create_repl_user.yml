@@ -26,8 +26,5 @@
               password={{ mysql_repl_pswd }}
 
 
-- debug: msg="{{mysql_pswd_folder}}"
-- debug: msg="{{mysql_pswd_file}}"
-
 - name: saving pswd
   shell: echo {{ mysql_repl_pswd }} > {{mysql_pswd_file}}
