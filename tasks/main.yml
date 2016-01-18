@@ -30,7 +30,6 @@
     mysql_server_id: "{{server_id.stdout}}"
     mysql_hostname: "{{hostname.stdout}}"
     mysql_tmp_file: /tmp/mysql_repl.config.tmp
-    mysql_pswd_file: "{{mysql_pswd_folder}}{{mysql_repl_user}}"
 
 
 - name: creating databases if required
@@ -41,7 +40,6 @@
 - include: create_repl_user.yml
 
 
-
 - name: templating config
   template: src=my.cnf.j2 dest={{ mysql_tmp_file }}
 
@@ -49,5 +47,48 @@
 - name: assembling my.cnf
   sudo: true
   shell: sed "/\[mysqld\]/r {{ mysql_tmp_file }}" -i {{ mysql_conf_file }}
-  notify: restarting mysql
 
+- name: restarting mysql
+  shell: sudo service {{ mysql_service }} restart
+  ignore_errors: true
+
+
+- name: checking if slave is already configured for replication
+  mysql_replication: mode=getslave
+  ignore_errors: true
+  register: slave
+  when: mysql_repl_role == 'slave'
+
+- debug: msg="{{slave}}"
+
+- name: waiting until master will be available
+  wait_for: host={{ mysql_repl_master }} timeout=5
+  when: slave|failed and mysql_repl_role == 'slave' and mysql_repl_master is defined
+
+
+
+- name: get master status
+  mysql_replication: mode=getmaster
+  delegate_to: "{{mysql_repl_master}}"
+  register: repl_state
+  when: slave|failed and mysql_repl_role == "slave" and mysql_repl_master is defined
+
+
+- name: get password from master
+  shell: cat "{{mysql_pswd_folder}}{{mysql_repl_user}}"
+  # mysql_replication: mode=getmaster
+  delegate_to: "{{mysql_repl_master}}"
+  register: pswd
+  when: slave|failed and mysql_repl_role == "slave" and mysql_repl_master is defined
+
+
+- name: connect slave to master
+  shell: mysql -e "change master to master_host = '{{mysql_repl_master}}', master_user = '{{mysql_repl_user}}', master_password = '{{pswd.stdout}}', master_log_file = '{{repl_state.File}}', master_log_pos = {{repl_state.Position}}"
+  when: slave|failed and mysql_repl_role == "slave" and mysql_repl_master is defined
+
+
+- name: mysql repl. start & check
+  shell: mysql -e 'start slave; select sleep(2); show slave status;'
+  when: slave|failed and mysql_repl_role == 'slave' and mysql_repl_master is defined
+
+  

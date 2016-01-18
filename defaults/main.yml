@@ -15,7 +15,9 @@ mysql_repl_pswd: ""
 mysql_repl_priv: "REPLICATION SLAVE"
 
 
-mysql_repl_role: default
+# master|slave
+mysql_repl_role: master
+# mysql_repl_master: ""
 
 mysql_conf_file: "{{mysql_conf_dir}}my.cnf"
 mysql_pswd_folder: "$HOME/.mysql/pswd/"

@@ -1,3 +1,8 @@
+- name: settings some facts
+  set_fact:
+    mysql_pswd_file: "{{mysql_pswd_folder}}{{mysql_repl_user}}"
+
+
 - name: prepare folder to store passwords
   shell: mkdir -p "{{mysql_pswd_folder}}"
 
