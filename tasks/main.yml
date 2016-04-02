@@ -32,13 +32,10 @@
     mysql_hostname: "{{hostname.stdout}}"
     mysql_tmp_file: /tmp/mysql_repl.config.tmp
 
-
 - name: creating databases if required
+  when: mysql_repl_type != 'full'
   mysql_db: name={{ item.name }} state=present
   with_items: mysql_repl_db
-
-
-- include: create_repl_user.yml
 
 
 - name: templating config
@@ -91,5 +88,3 @@
 - name: mysql repl. start & check
   shell: mysql -e 'start slave; select sleep(2); show slave status;'
   when: slave|failed and mysql_repl_role == 'slave' and mysql_repl_master is defined
-
-  
