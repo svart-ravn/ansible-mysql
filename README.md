@@ -14,7 +14,7 @@ Replication for two hosts can be setup in the following way:
 > cat playbook/setup_repl.yml
 --- 
 - hosts: all
-   roles: ansible-mysql-repl
+  roles: ansible-mysql-repl
 
 > ansible-playbook playbook/setup_repl.yml
 
